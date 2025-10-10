@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         AWS_REGION            = "ap-south-1"
-        AWS_ACCESS_KEY_ID     = credentials('aws-creds')   // Jenkins credential ID
+        AWS_ACCESS_KEY_ID     = credentials('aws-creds')
         AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
-        PATH                  = "/usr/bin:$PATH"          // Ensure Terraform is found
+        PATH                  = "$WORKSPACE/terraform-bin:$PATH"
     }
 
     stages {
@@ -15,35 +15,44 @@ pipeline {
             }
         }
 
+        stage('Install Terraform') {
+            steps {
+                sh '''
+                    mkdir -p $WORKSPACE/terraform-bin
+                    wget https://releases.hashicorp.com/terraform/1.5.5/terraform_1.5.5_linux_amd64.zip
+                    unzip terraform_1.5.5_linux_amd64.zip -d $WORKSPACE/terraform-bin
+                    chmod +x $WORKSPACE/terraform-bin/terraform
+                '''
+            }
+        }
+
         stage('Check Terraform') {
             steps {
-                sh 'echo "PATH=$PATH"'
-                sh 'which terraform || echo "Terraform not found"'
-                sh 'terraform -version'
+                sh '$WORKSPACE/terraform-bin/terraform -version'
             }
         }
 
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                sh '$WORKSPACE/terraform-bin/terraform init'
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan -out=tfplan'
+                sh '$WORKSPACE/terraform-bin/terraform plan -out=tfplan'
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -auto-approve tfplan'
+                sh '$WORKSPACE/terraform-bin/terraform apply -auto-approve tfplan'
             }
         }
 
         stage('Outputs') {
             steps {
-                sh 'terraform output'
+                sh '$WORKSPACE/terraform-bin/terraform output'
             }
         }
     }
