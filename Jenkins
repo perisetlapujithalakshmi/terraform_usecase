@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = "ap-south-1"
-        AWS_ACCESS_KEY_ID     = credentials('aws-creds')
+        AWS_REGION            = "ap-south-1"
+        AWS_ACCESS_KEY_ID     = credentials('aws-creds')   // Jenkins credential ID
         AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
-        PATH = "/usr/bin:$PATH"   // <-- This fixes Terraform not found
+        PATH                  = "/usr/bin:$PATH"          // Ensure Terraform is found
     }
 
     stages {
@@ -17,7 +17,8 @@ pipeline {
 
         stage('Check Terraform') {
             steps {
-                sh 'which terraform'
+                sh 'echo "PATH=$PATH"'
+                sh 'which terraform || echo "Terraform not found"'
                 sh 'terraform -version'
             }
         }
