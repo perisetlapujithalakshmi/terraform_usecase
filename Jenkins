@@ -3,14 +3,22 @@ pipeline {
 
     environment {
         AWS_REGION = "ap-south-1"
-        AWS_ACCESS_KEY_ID     = credentials('aws-creds') 
+        AWS_ACCESS_KEY_ID     = credentials('aws-creds')
         AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
+        PATH = "/usr/bin:$PATH"   // <-- This fixes Terraform not found
     }
 
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/perisetlapujithalakshmi/terraform_usecase.git'
+            }
+        }
+
+        stage('Check Terraform') {
+            steps {
+                sh 'which terraform'
+                sh 'terraform -version'
             }
         }
 
